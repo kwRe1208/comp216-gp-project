@@ -23,6 +23,9 @@ def get_single_response(url):
 
             file_name = create_filename(url, response.headers['Content-Type'])
 
+            if not os.path.exists(download_dir):
+                os.makedirs(download_dir)
+
             write_to_file(response, download_dir, file_name)
     except requests.exceptions.RequestException as e:
         raise SystemExit(e)
