@@ -23,6 +23,9 @@ def get_single_response(url):
                 raise ValueError('File download incomplete')
 
         file_name = create_filename(url, response.headers['Content-Type'])
+        
+        if not os.path.exists(download_dir):
+            os.makedirs(download_dir)
 
         write_to_file(response, download_dir, file_name)
 
@@ -47,6 +50,9 @@ def write_to_file(response, download_dir, file_name):
         raise ValueError('File already exists')
 
 def clear_dir(download_dir):
+    if not os.path.exists(download_dir):
+        print("Download_dir created successfully")
+        return 
     for filename in os.listdir(download_dir):
         file_path = os.path.join(download_dir, filename)
         try:
@@ -60,7 +66,7 @@ def clear_dir(download_dir):
 
 if __name__ == "__main__":
     username = os.getlogin()
-    download_dir = r'C:\Users\%s\OneDrive\Documents\Study Document\COMP216\downloads' % username
+    download_dir = os.getcwd() + f'/download_dir'
     clear_dir(download_dir)
     img_urls = [
         'https://images.unsplash.com/photo-1504208434309-cb69f4fe52b0', 
