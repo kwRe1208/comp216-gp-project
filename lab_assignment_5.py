@@ -1,3 +1,24 @@
+"""
+COMP216 - Lab Assignment 5
+
+Group: 1
+Group Members:
+    Handa, Karan
+    Ngan, Tsang Kwong
+    Patel, Jainam
+    Wong, Yu Kwan
+    ZHANG, AILIN
+
+Date: February 25, 2021
+
+Description:
+This script is used to download images from a list of URLs. It includes
+functions to validate the URL, create a filename based on the URL and content
+type, write the downloaded content to a file, and clear the download directory.
+It also includes a main function that uses these helper functions to download
+images both sequentially and concurrently using threading.
+
+"""
 import requests
 import re
 import os
@@ -9,6 +30,17 @@ from urllib.parse import urlparse
 
 
 def get_single_response(url):
+    """
+    This function is used to download a single image from a given URL. It validates
+    the URL, creates a filename based on the URL and content type, writes the
+    downloaded content to a file, and raises an exception if the download fails.
+    Parameters:
+        url (str): The URL of the image to download.
+        Raises:
+            ValueError: If the URL is invalid, the file download is incomplete, or
+                the file already exists.
+            requests.exceptions.RequestException: If the request to the URL fails.
+    """
     if not re.match(r'^https?:/{2}\w.+$', url):
         raise ValueError('Invalid URL')
 
@@ -32,6 +64,14 @@ def get_single_response(url):
 
 
 def create_filename(url, content_type):
+    """
+    This function is used to create a filename based on the URL and content type.
+    Parameters:
+        url (str): The URL of the image.
+        content_type (str): The content type of the image.
+    Returns:
+        str: The filename for the image.
+    """
     parsed_url = urlparse(url)
     file_name = os.path.basename(parsed_url.path)
     if '.' not in file_name:
@@ -42,8 +82,17 @@ def create_filename(url, content_type):
 
 
 def write_to_file(response, download_dir, file_name):
+    """
+    This function is used to write the downloaded content to a file.
+    Parameters:
+        response (requests.Response): The response object from the URL request.
+        download_dir (str): The directory to save the downloaded file.
+        file_name (str): The name of the file to save the downloaded content.
+    Raises:
+        ValueError: If the file already exists.
+    """
     full_path = os.path.join(download_dir, file_name)
-    #check if file exists
+    # check if file exists
     if not os.path.exists(full_path):
         with open(full_path, 'wb') as file:
             file.write(response.content)
@@ -51,7 +100,13 @@ def write_to_file(response, download_dir, file_name):
     else:
         raise ValueError('File already exists')
 
+
 def clear_dir(download_dir):
+    """
+    This function is used to clear the download directory.
+    Parameters:
+        download_dir (str): The directory to clear.
+    """
     if not os.path.exists(download_dir):
         print("Download_dir created successfully")
         return 
@@ -67,6 +122,10 @@ def clear_dir(download_dir):
 
 
 if __name__ == "__main__":
+    """
+    This is the main function that uses the helper functions to download images
+    both sequentially and concurrently using threading.
+    """
     username = os.getlogin()
     download_dir = os.getcwd() + f'/download_dir'
     clear_dir(download_dir)
@@ -88,7 +147,7 @@ if __name__ == "__main__":
     # Part A - get single url
     get_single_response(img_urls[0])
     
-    #Part B 
+    # Part B
     clear_dir(download_dir)
     timer = perf_counter()
     for url in img_urls:
@@ -109,7 +168,4 @@ if __name__ == "__main__":
         t.join()
 
     print(f"Time taken to download all images using threading: {perf_counter() - timer} seconds")
-
-
-
 
