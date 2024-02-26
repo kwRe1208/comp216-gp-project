@@ -1,3 +1,4 @@
-/download_dir/**
-!/download_dir/.gitkeep
+download_dir/**
+.idea/**
+!download_dir/.gitkeep
 
