@@ -1,0 +1,4 @@
+download_dir/**
+.idea/**
+!download_dir/.gitkeep
+

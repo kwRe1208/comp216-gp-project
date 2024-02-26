@@ -2,41 +2,43 @@ import requests
 import re
 import os
 import shutil
-from time import perf_counter
 import threading
-import os
+import mimetypes
+from time import perf_counter
+from urllib.parse import urlparse
 
 
 def get_single_response(url):
     if not re.match(r'^https?:/{2}\w.+$', url):
         raise ValueError('Invalid URL')
-    
+
     try:
-        response = requests.get(url)
-        #check if download file complete
-        if response.status_code != 200:
-            raise ValueError('Failed to download file')
-        
-        #check if file is completely downloaded
-        if 'Content-Length' in response.headers:
-            if int(response.headers['Content-Length']) != len(response.content):
-                raise ValueError('File download incomplete')
+        with requests.get(url) as response:
+            response.raise_for_status()
 
-        file_name = create_filename(url, response.headers['Content-Type'])
-        
-        if not os.path.exists(download_dir):
-            os.makedirs(download_dir)
+            # check if file is completely downloaded
+            if 'Content-Length' in response.headers:
+                if int(response.headers['Content-Length']) != len(response.content):
+                    raise ValueError('File download incomplete')
 
-        write_to_file(response, download_dir, file_name)
+            file_name = create_filename(url, response.headers['Content-Type'])
 
-        return response
-    
+            if not os.path.exists(download_dir):
+                os.makedirs(download_dir)
+
+            write_to_file(response, download_dir, file_name)
     except requests.exceptions.RequestException as e:
         raise SystemExit(e)
 
 
 def create_filename(url, content_type):
-    return re.sub(r'^.+/([^/]+)$', r'\1', url) + '.' + content_type.split('/')[1]
+    parsed_url = urlparse(url)
+    file_name = os.path.basename(parsed_url.path)
+    if '.' not in file_name:
+        file_extension = mimetypes.guess_extension(content_type.split(";")[0])
+        if file_extension:
+            file_name += file_extension
+    return file_name
 
 
 def write_to_file(response, download_dir, file_name):
