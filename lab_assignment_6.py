@@ -1,3 +1,16 @@
+"""
+COMP216 - Lab Assignment 5
+
+Group: 1
+Group Members:
+    Handa, Karan
+    Ngan, Tsang Kwong
+    Patel, Jainam
+    Wong, Yu Kwan
+    ZHANG, AILIN
+
+Date: March 3, 2024
+"""
 import matplotlib.pyplot as plt
 import random
 
