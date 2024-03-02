@@ -35,6 +35,9 @@ if __name__ == "__main__":
     for i in range(10):
         print(sensor.temperature)
     plt.plot(sensor.data)
+    plt.title('Temperature Sensor')
+    plt.xlabel('Time')
+    plt.ylabel('Temperature')
     plt.show()
     print(sensor.data)
 
