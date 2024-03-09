@@ -15,6 +15,7 @@ Date: March 10, 2024
 import colorsys
 import math
 from tkinter import *
+from tkinter import messagebox
 from PIL import ImageColor
 
 
@@ -73,8 +74,51 @@ class DisplayGauge:
             color_start (str): The start color of the gauge (default: "#00ff00").
             color_end (str): The end color of the gauge (default: "#ff0000").
         """
+        if not isinstance(root, Tk):
+            raise ValueError("Root must be a Tk object")
+        if not isinstance(value, (int, float)):
+            raise ValueError("Value must be a number")
+        if not isinstance(min_value, (int, float)):
+            raise ValueError("Min value must be a number")
+        if not isinstance(max_value, (int, float)):
+            raise ValueError("Max value must be a number")
+        if not isinstance(value_unit, str):
+            raise ValueError("Value unit must be a string")
+        if not isinstance(angle_range, int):
+            raise ValueError("Angle range must be an integer")
+        if not isinstance(mark_interval, (int, float)):
+            raise ValueError("Mark interval must be a number")
+        if not isinstance(major_mark_steps, int):
+            raise ValueError("Major mark steps must be an integer")
+        if not isinstance(label_mark_steps, int):
+            raise ValueError("Label mark steps must be an integer")
+        if not isinstance(color_start, str):
+            raise ValueError("Color start must be a string")
+        if not isinstance(color_end, str):
+            raise ValueError("Color end must be a string")
+
+        if min_value >= max_value:
+            raise ValueError("Min value must be less than max value")
+
+        if angle_range <= 0 or angle_range >= 360:
+            raise ValueError("Angle range must be between 0 and 360")
+
+        if mark_interval <= 0:
+            raise ValueError("Mark interval must be greater than 0")
+
+        if major_mark_steps <= 0:
+            raise ValueError("Major mark steps must be greater than 0")
+
+        if label_mark_steps <= 0:
+            raise ValueError("Label mark steps must be greater than 0")
+
+        if not ImageColor.getrgb(color_start):
+            raise ValueError("Invalid color start")
+
+        if not ImageColor.getrgb(color_end):
+            raise ValueError("Invalid color end")
+
         self._root = root
-        self._root.geometry(f"{DisplayGauge._WIDTH}x{DisplayGauge._HEIGHT}")
         self._value = value
         self._value_unit = value_unit
         self._min_value = min_value
@@ -101,6 +145,10 @@ class DisplayGauge:
     @value.setter
     def value(self, value: float):
         """ Sets the current value of the gauge. The gauge will be updated accordingly."""
+        if not isinstance(value, (int, float)):
+            raise ValueError("Value must be a number")
+        if value < self._min_value or value > self._max_value:
+            raise ValueError(f"Value must be between {self._min_value} and {self._max_value}")
         self._clear_dynamic_objects()
         self._value = value
         self._draw_needle()
@@ -259,14 +307,54 @@ class DisplayGauge:
         return f"#{int(rgb[0]):02x}{int(rgb[1]):02x}{int(rgb[2]):02x}"
 
 
+class MainApp:
+    """
+    The main application class used to test the DisplayGauge class.
+    """
+    def __init__(self, root):
+        """
+        Initializes a MainApp object.
+        Parameters:
+            root (Tk): The root window of the application.
+        """
+        self._root = root
+        self._root.geometry("500x500")
+        self._root.title("Gauge Display")
+        self._gauge = DisplayGauge(self._root, value=0, min_value=-20, max_value=100, value_unit="°C")
+
+        # Create a new frame
+        self._frame = Frame(self._root)
+        self._frame.pack()
+
+        # Create a Label widget for the new gauge value
+        self._label = Label(self._frame, text="Temperature (°C):")
+        self._label.grid(row=0, column=0, sticky="w")
+
+        # Create an Entry widget for the new gauge value
+        self._entry = Entry(self._frame, width=20)
+        self._entry.grid(row=0, column=1, sticky="w")
+
+        # Create a Button widget to update the gauge value
+        self._button = Button(self._frame, text="Update", command=self.update_gauge_value)
+        self._button.grid(row=0, column=2, sticky="w")
+
+    def update_gauge_value(self):
+        """
+        Updates the gauge value with the value from the entry widget.
+        """
+        try:
+            str_value = self._entry.get()
+            if not str_value:
+                raise ValueError("Input cannot be empty")
+            if not str_value.replace(".", "").isdigit():
+                raise ValueError("Input must be a number")
+            new_value = float(str_value)
+            self._gauge.value = new_value
+        except ValueError as e:
+            messagebox.showerror("Error", str(e))
+
+
 if __name__ == "__main__":
     root = Tk()
-    display_gauge = DisplayGauge(root, value=0, min_value=-20, max_value=100, value_unit="°C")
-    value = display_gauge.min_value
-    while value <= display_gauge.max_value:
-        display_gauge.value = value
-        root.update()
-        root.after(1000)
-        value += display_gauge.mark_interval
-
+    main_app = MainApp(root)
     root.mainloop()
