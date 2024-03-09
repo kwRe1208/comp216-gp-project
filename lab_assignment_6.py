@@ -69,7 +69,7 @@ class TemperatureSensor:
 if __name__ == "__main__":
     sensor = TemperatureSensor()
     for i in range(10):
-        print(sensor.temperature)
+        sensor.temperature
     plt.plot(sensor.data)
     plt.title('Temperature Sensor')
     plt.xlabel('Time')
