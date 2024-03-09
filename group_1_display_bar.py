@@ -91,6 +91,8 @@ class TemperatureSensorApp:
 
     Methods:
         update_sensor_value: Updates the sensor value with the value from the entry widget.
+        draw_line_graph: Draws a line graph of the temperature sensor data.
+        run: Runs the Tkinter event loop.
 
     """
 
@@ -147,6 +149,10 @@ class TemperatureSensorApp:
         self.draw_line_graph()
     
     def draw_line_graph(self):
+        """
+        Draws a line graph of the temperature sensor data.
+
+        """
         # Clear the canvas
         self.right_canvas.delete("all")
         x_scale = 40  # Scale for x-axis
@@ -169,7 +175,7 @@ class TemperatureSensorApp:
             self.right_canvas.create_line(x1, y1, x2, y2, fill="blue", width=2)
             # Draw the data points
             self.right_canvas.create_oval(x1 - 2, y1 - 2, x1 + 2, y1 + 2, fill="blue")
-            
+
         # Draw y-axis labels
         for i in range(0, 700, 100):
             self.right_canvas.create_text(x_offset - 10, y_offset - i * y_scale, text=str(i), anchor=E)
