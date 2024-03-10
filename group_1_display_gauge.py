@@ -32,6 +32,8 @@ class DisplayGauge:
     _MARK_SIZE = 10
     _MARK_WIDTH = 1
     _MAJOR_MARK_COLOR = "#303030"
+    _MIN_ANGLE_RANGE = 60
+    _MAX_ANGLE_RANGE = 300
 
     _DEFAULT_VALUE = 0
     _DEFAULT_VALUE_UNIT = "°C"
@@ -74,6 +76,7 @@ class DisplayGauge:
             color_start (str): The start color of the gauge (default: "#00ff00").
             color_end (str): The end color of the gauge (default: "#ff0000").
         """
+        # Validate the input parameter types
         if not isinstance(root, Tk):
             raise ValueError("Root must be a Tk object")
         if not isinstance(value, (int, float)):
@@ -97,34 +100,29 @@ class DisplayGauge:
         if not isinstance(color_end, str):
             raise ValueError("Color end must be a string")
 
+        # Validate the input parameter values
         if min_value >= max_value:
             raise ValueError("Min value must be less than max value")
-
-        if angle_range <= 0 or angle_range >= 360:
-            raise ValueError("Angle range must be between 0 and 360")
-
+        if angle_range < DisplayGauge._MIN_ANGLE_RANGE or angle_range > DisplayGauge._MAX_ANGLE_RANGE:
+            raise ValueError(f"Angle range must be between {DisplayGauge._MIN_ANGLE_RANGE} and {DisplayGauge._MAX_ANGLE_RANGE}")
         if mark_interval <= 0:
             raise ValueError("Mark interval must be greater than 0")
-
         if major_mark_steps <= 0:
             raise ValueError("Major mark steps must be greater than 0")
-
         if label_mark_steps <= 0:
             raise ValueError("Label mark steps must be greater than 0")
-
         if not ImageColor.getrgb(color_start):
             raise ValueError("Invalid color start")
-
         if not ImageColor.getrgb(color_end):
             raise ValueError("Invalid color end")
 
+        # Initialize the gauge properties
         self._root = root
         self._value = value
         self._value_unit = value_unit
         self._min_value = min_value
         self._max_value = max_value
         self._angle_range = angle_range
-        self._angle_start = angle_range / 2 + 90 # 90 degree offset
         self._mark_interval = mark_interval
         self._major_mark_steps = major_mark_steps
         self._label_mark_steps = label_mark_steps
@@ -135,6 +133,10 @@ class DisplayGauge:
         self._canvas = Canvas(self._root, width=DisplayGauge._WIDTH, height=DisplayGauge._HEIGHT)
         self._dynamic_objects = []
         self._canvas.pack()
+        # The start angle corresponding to the minimum value, in Tkinter's coordinate system
+        # is equal to 90 degrees plus half of the angle range.
+        # Adding 90 degrees is because 0 degree in Tkinter's coordinate system is at 3 o'clock position.
+        self._angle_start = angle_range / 2 + 90
         self._draw_guage()
 
     @property
@@ -241,13 +243,13 @@ class DisplayGauge:
             angle = self._convert_value_to_angle(value)
             angle_actual = self._angle_start - angle
             mark_size = DisplayGauge._MARK_SIZE
-            mark_start = 100
-            mark_end = 300
+            mark_start = 95
+            mark_end = 305
             mark_color = DisplayGauge._MARK_COLOR
 
             # Draw the label marks
             if step % self._label_mark_steps == 0:
-                radius = (mark_end - mark_start) / 2 - 20
+                radius = (mark_end - mark_start) / 2 - 15
                 y = radius * math.sin(math.radians(angle_actual))
                 x = radius * math.cos(math.radians(angle_actual))
                 self._canvas.create_text(200+x, 200-y, text=f"{value}", font=("Arial", 10))
@@ -272,7 +274,7 @@ class DisplayGauge:
         angle = self._angle_start - self._convert_value_to_angle(self._value)
         self._add_dynamic_objects(
             self._canvas.create_arc(
-                115, 115, 285, 285,
+                105, 105, 295, 295,
                 start=angle-0.5, extent=1, width=DisplayGauge._NEDDLE_WIDTH,
                 fill=DisplayGauge._NEEDLE_COLOR,
                 outline = DisplayGauge._NEEDLE_COLOR,
@@ -287,16 +289,20 @@ class DisplayGauge:
         )
 
     def _add_dynamic_objects(self, *objects):
+        """ Keeps track of the dynamic objects created on the canvas."""
         self._dynamic_objects.extend(objects)
 
     def _clear_dynamic_objects(self):
+        """ Clears the dynamic objects created on the canvas."""
         self._canvas.delete(*self._dynamic_objects)
         self._dynamic_objects = []
 
     def _convert_value_to_angle(self, value: float) -> float:
+        """ Converts a value to an angle."""
         return (value - self._min_value) / (self._max_value - self._min_value) * self._angle_range
 
     def _convert_angle_to_color(self, angle: float) -> str:
+        """ Converts an angle to a color."""
         ratio = angle / self._angle_range
         hsv_start = self._color_start_hsb
         hsv_end = self._color_end_hsb
@@ -320,7 +326,7 @@ class MainApp:
         self._root = root
         self._root.geometry("500x500")
         self._root.title("Gauge Display")
-        self._gauge = DisplayGauge(self._root, value=0, min_value=-20, max_value=100, value_unit="°C")
+        self._gauge = DisplayGauge(self._root, value=15.0, min_value=-20, max_value=100, value_unit="°C")
 
         # Create a new frame
         self._frame = Frame(self._root)
@@ -331,8 +337,9 @@ class MainApp:
         self._label.grid(row=0, column=0, sticky="w")
 
         # Create an Entry widget for the new gauge value
-        self._entry = Entry(self._frame, width=20)
+        self._entry = Entry(self._frame, width=10)
         self._entry.grid(row=0, column=1, sticky="w")
+        self._entry.bind('<Return>', lambda e: self.update_gauge_value())
 
         # Create a Button widget to update the gauge value
         self._button = Button(self._frame, text="Update", command=self.update_gauge_value)
@@ -346,8 +353,6 @@ class MainApp:
             str_value = self._entry.get()
             if not str_value:
                 raise ValueError("Input cannot be empty")
-            if not str_value.replace(".", "").isdigit():
-                raise ValueError("Input must be a number")
             new_value = float(str_value)
             self._gauge.value = new_value
         except ValueError as e:
