@@ -14,30 +14,45 @@ Date: March 3, 2024
 import matplotlib.pyplot as plt
 import random
 
-class TemperatureSensor:
-    def __init__(self, min_temp=18, max_temp=23):
-        self.min_temp = min_temp
-        self.max_temp = max_temp
+class DataGenerator:
+    def __init__(self):
         self.data = []
 
     def _generate_random_value(self):
+        """
+        Generates a random value between 0 and 1.
+
+        Returns:
+            float: A random value between 0 and 1.
+
+        """
         return random.uniform(0, 1)
 
     @property
-    def temperature(self):
-        normalized_value = self._generate_random_value()
-        temperature = self.min_temp + (self.max_temp - self.min_temp) * normalized_value
-        self.data.append(temperature)
-        return temperature
+    def random_value(self):
+        value = self._generate_random_value()
+        if len(self.data) < 2:
+            self.data.append(value)
+        else:
+            m = max(self.data) - min(self.data)
+            c = min(self.data)
+            value = m * value + c
+            self.data.append(value)
+        print(f'Generated value: {value}')
+        
+    
+    def plot_data(self):
+        plt.plot(self.data, 'r-')
+        plt.title('Random Numbers')
+        plt.xlabel('Index')
+        plt.ylabel('Value')
+        plt.show()
+
 
 if __name__ == "__main__":
     sensor = TemperatureSensor()
     for i in range(10):
-        print(sensor.temperature)
-    plt.plot(sensor.data)
-    plt.title('Temperature Sensor')
-    plt.xlabel('Time')
-    plt.ylabel('Temperature')
-    plt.show()
-    print(sensor.data)
+        rng.random_value
+    rng.plot_data()
+
 
