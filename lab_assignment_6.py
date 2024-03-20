@@ -15,9 +15,6 @@ import matplotlib.pyplot as plt
 import random
 
 class TemperatureSensor:
-<<<<<<< HEAD
-    def __init__(self, min_temp=18, max_temp=23):
-=======
     """
     A class representing a temperature sensor.
 
@@ -41,7 +38,6 @@ class TemperatureSensor:
             max_temp (float): The maximum temperature value (default: 23).
 
         """
->>>>>>> 60afa274e2737568a0bb4a25cbe1543f7224e21e
         self.min_temp = min_temp
         self.max_temp = max_temp
         self.data = []
@@ -58,8 +54,6 @@ class TemperatureSensor:
 
     @property
     def temperature(self):
-<<<<<<< HEAD
-=======
         """
         Generates a random temperature value within the specified range.
 
@@ -67,7 +61,6 @@ class TemperatureSensor:
             float: A random temperature value within the specified range.
 
         """
->>>>>>> 60afa274e2737568a0bb4a25cbe1543f7224e21e
         normalized_value = self._generate_random_value()
         temperature = self.min_temp + (self.max_temp - self.min_temp) * normalized_value
         self.data.append(temperature)
@@ -76,18 +69,10 @@ class TemperatureSensor:
 if __name__ == "__main__":
     sensor = TemperatureSensor()
     for i in range(10):
-<<<<<<< HEAD
-        print(sensor.temperature)
-=======
         sensor.temperature
->>>>>>> 60afa274e2737568a0bb4a25cbe1543f7224e21e
     plt.plot(sensor.data)
     plt.title('Temperature Sensor')
     plt.xlabel('Time')
     plt.ylabel('Temperature')
     plt.show()
     print(sensor.data)
-<<<<<<< HEAD
-
-=======
->>>>>>> 60afa274e2737568a0bb4a25cbe1543f7224e21e
