@@ -1,3 +1,16 @@
+"""
+COMP216 - Lab Assignment 9
+
+Group: 1
+Group Members:
+    Handa, Karan
+    Ngan, Tsang Kwong
+    Patel, Jainam
+    Wong, Yu Kwan
+    ZHANG, AILIN
+
+Date: March 23, 2024
+"""
 from random import random
 from tkinter import Canvas, Frame, Label, Button, Tk, messagebox, Spinbox, Widget
 
