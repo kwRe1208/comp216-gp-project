@@ -158,12 +158,18 @@ class DisplayChart:
         gap = 10
     # Draw bar chart
         for i in range(data_points):
+            if i > 15:
+                break
+
             x1 = x_offset + i * x_scale
             y1 = y_offset
             x2 = x1 + x_scale
             y2 = y_offset - (self.data_list[i] * y_scale)
             self.bottom_canvas.create_rectangle(x1, y1, x2, y2, fill="blue")
-        for i in range(data_points ):
+        for i in range(data_points):
+            if i > 15:
+                break
+
             x1 = x_offset + i * x_scale
             y1 = line_y_offset - self.data_list[i] * y_scale
             x2 = x_offset + (i + 1) * x_scale
@@ -172,6 +178,18 @@ class DisplayChart:
             self.bottom_canvas.create_oval(x1 - 2, y1 - 2, x1 + 2, y1 + 2, fill="blue")
         for i in range(0, 400, 100):
             self.bottom_canvas.create_text(x_offset - 10, y_offset - i * y_scale, text=str(i), anchor=E)    
+        
+        #Add the numbers for each bar
+        for i in range(data_points):
+            if i > 15:
+                break
+            x1 = x_offset + i * x_scale
+            y1 = y_offset
+            x2 = x1 + x_scale
+            y2 = y_offset - (self.data_list[i] * y_scale)
+            self.bottom_canvas.create_text(x1 + 10, y2 - 10, text=str(round(self.data_list[i], 2)), anchor=NW)
+
+
         # Draw the title
         self.bottom_canvas.create_text(self.bottom_canvas_height / 2, 20, text="Temperature Sensor Data", font=("Arial", 20))
 
