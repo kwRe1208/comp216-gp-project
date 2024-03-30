@@ -319,13 +319,14 @@ class DisplayChartApp:
         self._frame.columnconfigure(2, weight=1, pad=2)
         self._frame.rowconfigure(0, weight=1, pad=20)
         self._frame.rowconfigure(1, weight=1)
+        self._running = True
 
         self._button = Button(
             self._frame,
-            text="Start / Pause",
+            text="Pause",
             width=15,
             font=("Arial", 12),
-            command=self._draw_chart_on_input
+            command=self._start_pause
         )
         self._button.grid(row=0, column=2, sticky="w")
         self._chart = DisplayChart(
@@ -339,12 +340,26 @@ class DisplayChartApp:
         
         
         # Remove the Entry widget
-        self._button.destroy()
+        #self._button.destroy()
 
         # Create a thread and set the target to the method
         self._thread = threading.Thread(target=self._update_data_and_draw_chart)
         self._thread.daemon = True  # Terminate the thread when the GUI closes
         self._thread.start()
+    
+    def _start_pause(self):
+        if self._thread.is_alive():
+            self._running = False
+            self._button["text"] = "Start"
+        else:
+            self._running = True
+            self._button["text"] = "Pause"
+            self._thread = threading.Thread(target=self._update_data_and_draw_chart)
+            self._thread.daemon = True
+            self._thread.start()
+
+
+
 
     def draw_chart(self, start_index: int = 0, end_index: int = None):
         """
@@ -374,7 +389,7 @@ class DisplayChartApp:
             return False
         
     def _update_data_and_draw_chart(self):
-        while True:
+        while self._running:
             # Remove the first item in the list of values
             self._data_points.pop(0)
             # Add a new random value to the end of the list
@@ -382,7 +397,7 @@ class DisplayChartApp:
             # Call the method to display list on the canvas
             self.draw_chart()
             # Sleep for a short while (0.5 of a second)
-            time.sleep(0.5)
+            time.sleep(1)
 
 
 #
