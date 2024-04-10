@@ -24,7 +24,7 @@ class Util:
         #create and return a dict with the temperature data (randam float between 1 - 34)
         #make the temp to 1 decimal places
         self.start_id += 1
-        self.temp = round(uniform(1, 34), 1)
+        self.temp = round(uniform(15, 30), 1)
 
         #Setup level of temperature based on the value
         if self.temp >= 1 and self.temp < 13:

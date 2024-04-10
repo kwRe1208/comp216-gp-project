@@ -98,8 +98,6 @@ class Publisher(Util):
             self.on_publish(self.client_pub, data)
         except Exception as e:
             raise e
-        finally:
-            self.client_pub.disconnect()
 
     def on_publish(self, client, userdata):
         """

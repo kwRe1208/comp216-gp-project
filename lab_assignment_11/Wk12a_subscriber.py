@@ -41,6 +41,8 @@ class Subscriber:
         self.client_id = "COMP216-2024-GP1"
         self.callback_api_ver = mqtt.CallbackAPIVersion.VERSION2
         self.topic = "TEMP-COMP216-GP1"
+        self.data_points = []
+        self.data_ids = []
 
     def create_client(self):
         """
@@ -52,7 +54,7 @@ class Subscriber:
             self.client.on_connect = self.on_connect
             self.client.subscribe(self.topic)
             self.client.on_message = self.on_message
-            self.client.loop_forever()
+            self.client.loop_forever(retry_first_connection=True)
         except TimeoutError:
             print("Connection to the broker timed out")
 
@@ -68,6 +70,8 @@ class Subscriber:
             properties: The properties associated with the connection.
         """
         print("Connected with result code {0}".format(str(reason)))
+        print("Subscribing to topic:", self.topic)
+        print("Waiting for messages...")
 
     def on_message(self, client, userdata, msg):
         """
@@ -78,14 +82,26 @@ class Subscriber:
             userdata: The user data associated with the client.
             msg (mqtt.MQTTMessage): The received message.
         """
-        try:
-            decoded_message = msg.payload.decode('utf-8')
-            message_dict = json.loads(decoded_message)
-            self.print_dictionary(message_dict)
-        except json.JSONDecodeError:
-            raise ValueError("Invalid JSON format")
-        finally:
-            self.disconnect()
+        decoded_message = msg.payload.decode('utf-8')
+        message_dict = json.loads(decoded_message)
+        self.print_dictionary(message_dict)
+        self.store_data(message_dict)
+
+    def store_data(self, dictionary):
+        """
+        Stores the received data in a list.
+
+        Args:
+            dictionary (dict): The dictionary containing the data.
+        """
+        queue_length = 5
+        if len(self.data_points) == queue_length:
+            self.data_points.pop(0)
+            self.data_ids.pop(0)
+
+        self.data_points.append(dictionary['temp'])
+        self.data_ids.append(dictionary['id'])
+        print(self.data_ids, self.data_points)
 
     def print_dictionary(self, dictionary):
         """
@@ -99,6 +115,12 @@ class Subscriber:
         print("temp:", dictionary['temp'])
         print("level:", dictionary['level'])
     
+    def unsubscribe(self):
+        """
+        Unsubscribes from the topic.
+        """
+        self.client.unsubscribe(self.topic)
+
     def disconnect(self):
         """
         Disconnects the MQTT client from the broker.
@@ -106,6 +128,6 @@ class Subscriber:
         self.client.loop_stop()
         self.client.disconnect()
 
-
-sub = Subscriber()
-sub.create_client()
+if __name__ == "__main__":
+    sub = Subscriber()
+    sub.create_client()
