@@ -1,5 +1,5 @@
 """
-COMP216 - Lab Assignment 9
+COMP216 - Final Proiject
 
 Group: 1
 Group Members:
@@ -9,12 +9,14 @@ Group Members:
     Wong, Yu Kwan
     ZHANG, AILIN
 
-Date: March 30, 2024
+Date: April 12, 2024
 """
 from random import random
 from tkinter import Canvas, Frame, Label, Button, Tk, messagebox, Spinbox, Widget
 import threading
 import time
+from lab_assignment_11.Wk12a_subscriber import Subscriber
+import json
 
 class DisplayChart(Widget):
     """
@@ -245,7 +247,7 @@ class DisplayChart(Widget):
         self._series_list.clear()
 
 
-class DisplayChartApp:
+class DisplayChartApp():
     """DisplayChartApp class for displaying historical data in a chart application."""
     def __init__(
             self,
@@ -279,7 +281,7 @@ class DisplayChartApp:
         self._root = root
         self._root.title(title)
         self._root.geometry(f"{width + 40}x{height + 80}")
-        self._data_points = data_points
+        self._data_points = [0 for _ in range(items_per_page)]
         self._value_min = value_min
         self._value_max = value_max
         self._value_unit = value_unit
@@ -311,15 +313,32 @@ class DisplayChartApp:
         )
         self._chart.grid(row=1, column=0, columnspan=3)
         self._frame.pack()
-        
-        
-        # Remove the Entry widget
-        #self._button.destroy()
+
+        # Create a new Subscriber object, and set the on_message method to update the data_points list and draw the chart
+        self.subscriber = Subscriber()
+        self.subscriber.on_message = self.on_message
+        self.subscriber.create_client()
+
+                # Call the method to display list on the canvas
+        self._GUI_thread = threading.Thread(target=self._update_data_and_draw_chart)
+        self._GUI_thread.daemon = True
+        self._GUI_thread.start()
 
         # Create a thread and set the target to the method
-        self._thread = threading.Thread(target=self._update_data_and_draw_chart)
+        self._thread = threading.Thread(target=self.subscriber.create_client)
         self._thread.daemon = True  # Terminate the thread when the GUI closes
         self._thread.start()
+
+    # a new on_message method to update the data_points list
+    def on_message(self, client, userdata, msg):
+        """
+        Callback function called when a message is received.
+        """
+        message_dict = json.loads(msg.payload.decode('utf-8'))
+        self._data_points.pop(0)
+        self._data_points.append(message_dict['temp'])
+        print(self._data_points)
+        #self._update_data_and_draw_chart()
     
     def _start_pause(self):
         if self._thread.is_alive():
@@ -331,9 +350,6 @@ class DisplayChartApp:
             self._thread = threading.Thread(target=self._update_data_and_draw_chart)
             self._thread.daemon = True
             self._thread.start()
-
-
-
 
     def draw_chart(self, start_index: int = 0, end_index: int = None):
         """
@@ -347,27 +363,9 @@ class DisplayChartApp:
         self._chart.draw_x_axis(self._x_axis_title, [str(i) for i in range(start_index, end_index)])
         self._chart.draw_y_axis(self._y_axis_title, self._y_axis_step, self._value_unit)
 
-    def _draw_chart_on_input(self):
-        try:
-            start_index = 0
-            if (start_index < 0) or (start_index >= len(self._data_points)):
-                raise ValueError("Invalid Input!\nIndex value must be >= 0 and <" + str(len(self._data_points)))
-            self.draw_chart(start_index)
-        except ValueError as e:
-            messagebox.showerror('Input Error', str(e))
-
-    def _validate_on_input(self, value: str) -> bool:
-        if str.isdigit(value) or value == "":
-            return True
-        else:
-            return False
         
     def _update_data_and_draw_chart(self):
         while self._running:
-            # Remove the first item in the list of values
-            self._data_points.pop(0)
-            # Add a new random value to the end of the list
-            self._data_points.append(random() * 8 + 16)
             # Call the method to display list on the canvas
             self.draw_chart()
             # Sleep for a short while (0.5 of a second)
