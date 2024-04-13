@@ -14,7 +14,7 @@ Date: April 6, 2024
 
 import json
 import paho.mqtt.client as mqtt
-
+import threading
 
 class Subscriber:
     """
@@ -43,6 +43,7 @@ class Subscriber:
         self.topic = "TEMP-COMP216-GP1"
         self.data_points = []
         self.data_ids = []
+        self.data_level = []
 
     def create_client(self):
         """
@@ -54,10 +55,21 @@ class Subscriber:
             self.client.on_connect = self.on_connect
             self.client.subscribe(self.topic)
             self.client.on_message = self.on_message
-            self.client.loop_forever(retry_first_connection=True)
         except TimeoutError:
             print("Connection to the broker timed out")
 
+    def start_subscriber_thread(self):
+        # Start a new thread for the subscriber
+        self.subscriber_thread = threading.Thread(target=self.client.loop_forever, kwargs={"retry_first_connection": True})
+        self.subscriber_thread.daemon = True  # Set the thread as a daemon so it terminates with the main thread
+        self.subscriber_thread.start()
+
+    def stop_subscriber_thread(self):
+        # Disconnect the client and stop the thread
+        self.client.disconnect()
+        self.subscriber_thread.join()  # Wait for the thread to terminate
+
+    
     def on_connect(self, client, userdata, flags, reason, properties):
         """
         Callback function called when the client connects to the broker.
@@ -101,6 +113,7 @@ class Subscriber:
 
         self.data_points.append(dictionary['temp'])
         self.data_ids.append(dictionary['id'])
+        self.data_level.append(dictionary['level'])
         print(self.data_ids, self.data_points)
 
     def print_dictionary(self, dictionary):

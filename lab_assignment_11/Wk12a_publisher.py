@@ -118,11 +118,12 @@ class Publisher(Util):
         self.client_pub.disconnect()
 
 
-pub = Publisher()
-pub.create_client()
 
-while True:
-    pub.publish_data()
-    time.sleep(2)
+if __name__ == "__main__":
+    pub = Publisher()
+    pub.create_client()
+    while True:
+        pub.publish_data()
+        time.sleep(2)
 
 #pub.disconnect()
