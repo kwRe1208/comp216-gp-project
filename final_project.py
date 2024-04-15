@@ -17,6 +17,7 @@ from tkinter.ttk import Treeview
 import threading
 import time
 from lab_assignment_11.Wk12a_subscriber import Subscriber
+from wk14_email import EmailSender
 import json
 
 class DisplayChart(Widget):
@@ -360,6 +361,10 @@ class DisplayChartApp():
             time.sleep(1)
 
         while self._running:
+            if self.subscriber.data_points[-1] > 23.0:
+                email_sender = EmailSender()
+                email_sender.send_email(f'Temperature is too high: {self.subscriber.data_points[-1]}')
+                
             # Call the method to display list on the canvas
             self.draw_chart()
             # Sleep for a short while (0.5 of a second)
