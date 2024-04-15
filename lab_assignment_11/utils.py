@@ -20,30 +20,26 @@ class Util:
     def __init__(self):
         self.start_id = 100
         
-    def create_data(self):
+    def create_data(self) -> dict:
         #create and return a dict with the temperature data (randam float between 1 - 34)
         #make the temp to 1 decimal places
         self.start_id += 1
-        self.temp = round(uniform(15, 30), 1)
+        self.temp = round(uniform(15, 24), 1)
 
         #Setup level of temperature based on the value
-        if self.temp >= 1 and self.temp < 13:
-            self.level = 'low'
-        elif self.temp >= 13 and self.temp < 26:
+        if self.temp >= 15.0 and self.temp < 22.9:
             self.level = 'normal'
-        elif self.temp >= 26 and self.temp < 30:
-            self.level = 'high'
+        elif self.temp >= 23.0 and self.temp <= 24.0:
+            self.level = 'extreme'
         else:
             self.level = 'extreme'
 
-        data = {
+        return {
             'id': self.start_id,
             'time': asctime(),
             'temp': self.temp,
             'level': self.level
         }
-
-        return data
     
     def print_data(self):
         print(self.create_data())

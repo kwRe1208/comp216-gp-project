@@ -13,6 +13,7 @@ Date: April 12, 2024
 """
 from random import random
 from tkinter import Canvas, Frame, Label, Button, Tk, messagebox, Spinbox, Widget
+from tkinter.ttk import Treeview
 import threading
 import time
 from lab_assignment_11.Wk12a_subscriber import Subscriber
@@ -252,7 +253,6 @@ class DisplayChartApp():
     def __init__(
             self,
             root: Tk,
-            data_points: list[float],
             value_min: float,
             value_max: float,
             value_unit: str,
@@ -281,7 +281,7 @@ class DisplayChartApp():
         self._root = root
         self._root.title(title)
         self._root.geometry(f"{width + 40}x{height + 80}")
-        self._data_points = [0 for _ in range(items_per_page)]
+        self._data_points = []
         self._value_min = value_min
         self._value_max = value_max
         self._value_unit = value_unit
@@ -295,6 +295,8 @@ class DisplayChartApp():
         self._frame.columnconfigure(2, weight=1, pad=2)
         self._frame.rowconfigure(0, weight=1, pad=20)
         self._frame.rowconfigure(1, weight=1)
+        self._frame.rowconfigure(2, weight=0, pad=20)
+        self._frame.rowconfigure(3, weight=1, pad=20)
         self._running = True
 
         self._button = Button(
@@ -304,6 +306,7 @@ class DisplayChartApp():
             font=("Arial", 12),
             command=self._start_pause
         )
+
         self._button.grid(row=0, column=2, sticky="w")
         self._chart = DisplayChart(
             self._frame,
@@ -312,44 +315,32 @@ class DisplayChartApp():
             value_max=value_max,
         )
         self._chart.grid(row=1, column=0, columnspan=3)
+
         self._frame.pack()
 
         # Create a new Subscriber object, and set the on_message method to update the data_points list and draw the chart
         self.subscriber = Subscriber()
-        self.subscriber.on_message = self.on_message
+        #self.subscriber.on_message = self.on_message
         self.subscriber.create_client()
 
-                # Call the method to display list on the canvas
+        # Call the method to display list on the canvas
         self._GUI_thread = threading.Thread(target=self._update_data_and_draw_chart)
         self._GUI_thread.daemon = True
         self._GUI_thread.start()
+        
+        # Start the subscriber thread
+        self.subscriber.start_subscriber_thread()
 
-        # Create a thread and set the target to the method
-        self._thread = threading.Thread(target=self.subscriber.create_client)
-        self._thread.daemon = True  # Terminate the thread when the GUI closes
-        self._thread.start()
-
-    # a new on_message method to update the data_points list
-    def on_message(self, client, userdata, msg):
-        """
-        Callback function called when a message is received.
-        """
-        message_dict = json.loads(msg.payload.decode('utf-8'))
-        self._data_points.pop(0)
-        self._data_points.append(message_dict['temp'])
-        print(self._data_points)
-        #self._update_data_and_draw_chart()
     
     def _start_pause(self):
-        if self._thread.is_alive():
-            self._running = False
+        if self._running:
+            self.subscriber.stop_subscriber_thread()
             self._button["text"] = "Start"
+            self._running = False
         else:
-            self._running = True
             self._button["text"] = "Pause"
-            self._thread = threading.Thread(target=self._update_data_and_draw_chart)
-            self._thread.daemon = True
-            self._thread.start()
+            self.subscriber.start_subscriber_thread()
+            self._running = True
 
     def draw_chart(self, start_index: int = 0, end_index: int = None):
         """
@@ -357,19 +348,22 @@ class DisplayChartApp():
         :param start_index: The start index of the data points.
         :param end_index: The end index of the data points.
         """
-        end_index = end_index or min(len(self._data_points), start_index + self._items_per_page)
+        end_index = end_index or min(len(self.subscriber.data_points), start_index + self._items_per_page)
         self._chart.clear()
-        self._chart.draw_lines(self._data_points[start_index:end_index], color="red")
-        self._chart.draw_x_axis(self._x_axis_title, [str(i) for i in range(start_index, end_index)])
+        self._chart.draw_lines(self.subscriber.data_points[start_index:end_index], color="red")
+        self._chart.draw_x_axis(self._x_axis_title, self.subscriber.data_ids[start_index:end_index])
         self._chart.draw_y_axis(self._y_axis_title, self._y_axis_step, self._value_unit)
 
         
     def _update_data_and_draw_chart(self):
+        while len(self.subscriber.data_points) == 0:
+            time.sleep(1)
+
         while self._running:
             # Call the method to display list on the canvas
             self.draw_chart()
             # Sleep for a short while (0.5 of a second)
-            time.sleep(1)
+            time.sleep(2)
 
 
 #
@@ -378,10 +372,8 @@ class DisplayChartApp():
 #
 if __name__ == "__main__":
     root = Tk()
-    data_points = [random() * 8 + 16 for _ in range(100)]
     app = DisplayChartApp(
         root,
-        data_points,
         value_min=15,
         value_max=25,
         value_unit="°C",
