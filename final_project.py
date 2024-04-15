@@ -5,7 +5,7 @@ Group: 1
 Group Members:
     Handa, Karan
     Ngan, Tsang Kwong
-    Patel, Jainam
+    Patel, Jainam 
     Wong, Yu Kwan
     ZHANG, AILIN
 
@@ -338,10 +338,14 @@ class DisplayChartApp():
             self.subscriber.stop_subscriber_thread()
             self._button["text"] = "Start"
             self._running = False
+
         else:
             self._button["text"] = "Pause"
+            self.subscriber.create_client() 
             self.subscriber.start_subscriber_thread()
             self._running = True
+            self.draw_chart()
+
 
     def draw_chart(self, start_index: int = 0, end_index: int = None):
         """
@@ -359,7 +363,7 @@ class DisplayChartApp():
     def _update_data_and_draw_chart(self):
         while len(self.subscriber.data_points) == 0:
             time.sleep(1)
-
+        print(self._running)
         while self._running:
             if self.subscriber.data_points[-1] > 23.0:
                 email_sender = EmailSender()
