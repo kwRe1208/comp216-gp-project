@@ -24,14 +24,17 @@ class Util:
         #create and return a dict with the temperature data (randam float between 1 - 34)
         #make the temp to 1 decimal places
         self.start_id += 1
-        self.temp = round(uniform(15, 24), 1)
+        self.temp = round(uniform(15, 23), 1)
 
         #Setup level of temperature based on the value
         if self.temp >= 15.0 and self.temp < 22.9:
             self.level = 'normal'
-        elif self.temp >= 23.0 and self.temp <= 24.0:
-            self.level = 'extreme'
         else:
+            self.level = 'extreme'
+
+        # Make sure a extreme temperature is generated every 100th iteration
+        if self.start_id // 100 == 0:
+            self.temp = 24,
             self.level = 'extreme'
 
         return {
