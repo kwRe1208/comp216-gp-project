@@ -96,7 +96,7 @@ class Subscriber:
         """
         decoded_message = msg.payload.decode('utf-8')
         message_dict = json.loads(decoded_message)
-        self.print_dictionary(message_dict)
+        #self.print_dictionary(message_dict)
         self.store_data(message_dict)
 
     def store_data(self, dictionary):

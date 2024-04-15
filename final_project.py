@@ -363,7 +363,7 @@ class DisplayChartApp():
     def _update_data_and_draw_chart(self):
         while len(self.subscriber.data_points) == 0:
             time.sleep(1)
-        print(self._running)
+
         while self._running:
             if self.subscriber.data_points[-1] > 23.0:
                 email_sender = EmailSender()
@@ -372,7 +372,7 @@ class DisplayChartApp():
             # Call the method to display list on the canvas
             self.draw_chart()
             # Sleep for a short while (0.5 of a second)
-            time.sleep(2)
+            time.sleep(1)
 
 
 #

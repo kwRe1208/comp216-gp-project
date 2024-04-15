@@ -107,8 +107,7 @@ class Publisher(Util):
             client (mqtt.Client): The MQTT client instance.
             userdata: The user data associated with the client.
         """
-        print(client)
-        print(userdata)
+        return userdata
 
     def disconnect(self):
         """

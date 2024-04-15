@@ -58,10 +58,13 @@ class PublisherGUI:
         
     def continuous_publishing(self):
         while getattr(self, "publishing_flag", True):
+            #data = self.publisher.data
             data = self.publisher.convert_to_json()
             self.publisher.publish_data()
+
             self.display_data(data)
-            time.sleep(2)  # Adjust the sleep duration as needed
+            time.sleep(1)  # Adjust the sleep duration as needed
+
             
     def stop_publishing(self):
         # Set the flag to stop publishing
